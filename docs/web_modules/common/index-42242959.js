@@ -27,14 +27,20 @@ function insert(target, node, anchor) {
 function detach(node) {
     node.parentNode.removeChild(node);
 }
+function destroy_each(iterations, detaching) {
+    for (let i = 0; i < iterations.length; i += 1) {
+        if (iterations[i])
+            iterations[i].d(detaching);
+    }
+}
 function element(name) {
     return document.createElement(name);
 }
 function text(data) {
     return document.createTextNode(data);
 }
-function space() {
-    return text(' ');
+function empty() {
+    return text('');
 }
 function attr(node, attribute, value) {
     if (value == null)
@@ -253,4 +259,4 @@ class SvelteComponent {
     }
 }
 
-export { SvelteComponent as S, append as a, attr as b, insert as c, detach as d, element as e, set_data as f, space as g, init as i, noop as n, onMount as o, safe_not_equal as s, text as t };
+export { SvelteComponent as S, append as a, attr as b, detach as c, destroy_each as d, element as e, empty as f, insert as g, set_data as h, init as i, noop as n, onMount as o, safe_not_equal as s, text as t };

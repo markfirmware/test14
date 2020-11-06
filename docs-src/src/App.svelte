@@ -1,11 +1,34 @@
+<div>
+  {#if repos}
+    test repos
+    <ul>
+      {#each repos as repo}
+        {#if repo.name.includes("test")}
+          <li><a href={repo.html_url}>{repo.name}</a></li>
+        {/if}
+      {/each}
+    </ul>
+  {/if}
+</div>
+
 <script>
   import {onMount} from 'svelte';
-  let count = 0;
+  let repos;
+  let repos_buffer = [];
+  let next = (page_number) => {
+    fetch("https://api.github.com/users/markfirmware/repos?page=" + page_number)
+      .then(r => r.json())
+      .then(j => {
+        if (j.length == 0) {
+          repos = repos_buffer;
+        } else {
+          repos_buffer = repos_buffer.concat(j);
+          next(page_number + 1);
+        }
+      });
+  };
+  next(1);
   onMount(() => {
-    const interval = setInterval(() => count++, 1000);
-    return () => {
-      clearInterval(interval);
-    };
   });
 </script>
 
@@ -55,15 +78,3 @@
   }
 </style>
 
-<div class="App">
-  <header class="App-header">
-    <img src="logo.svg" class="App-logo" alt="logo" />
-    <p>Edit <code>src/App.svelte</code> and save to reload.</p>
-    <p>Page has been open for <code>{count}</code> seconds.</p>
-    <p>
-      <a class="App-link" href="https://svelte.dev" target="_blank" rel="noopener noreferrer">
-        Learn Svelte
-      </a>
-    </p>
-  </header>
-</div>

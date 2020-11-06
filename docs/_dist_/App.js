@@ -4,100 +4,215 @@ import {
 	SvelteComponent,
 	append,
 	attr,
+	destroy_each,
 	detach,
 	element,
+	empty,
 	init,
 	insert,
 	noop,
 	safe_not_equal,
 	set_data,
-	space,
 	text
 } from "../web_modules/svelte/internal.js";
 
 import { onMount } from "../web_modules/svelte.js";
 
+function get_each_context(ctx, list, i) {
+	const child_ctx = ctx.slice();
+	child_ctx[3] = list[i];
+	return child_ctx;
+}
+
+// (2:2) {#if repos}
+function create_if_block(ctx) {
+	let t;
+	let ul;
+	let each_value = /*repos*/ ctx[0];
+	let each_blocks = [];
+
+	for (let i = 0; i < each_value.length; i += 1) {
+		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+	}
+
+	return {
+		c() {
+			t = text("test repos\n    ");
+			ul = element("ul");
+
+			for (let i = 0; i < each_blocks.length; i += 1) {
+				each_blocks[i].c();
+			}
+		},
+		m(target, anchor) {
+			insert(target, t, anchor);
+			insert(target, ul, anchor);
+
+			for (let i = 0; i < each_blocks.length; i += 1) {
+				each_blocks[i].m(ul, null);
+			}
+		},
+		p(ctx, dirty) {
+			if (dirty & /*repos*/ 1) {
+				each_value = /*repos*/ ctx[0];
+				let i;
+
+				for (i = 0; i < each_value.length; i += 1) {
+					const child_ctx = get_each_context(ctx, each_value, i);
+
+					if (each_blocks[i]) {
+						each_blocks[i].p(child_ctx, dirty);
+					} else {
+						each_blocks[i] = create_each_block(child_ctx);
+						each_blocks[i].c();
+						each_blocks[i].m(ul, null);
+					}
+				}
+
+				for (; i < each_blocks.length; i += 1) {
+					each_blocks[i].d(1);
+				}
+
+				each_blocks.length = each_value.length;
+			}
+		},
+		d(detaching) {
+			if (detaching) detach(t);
+			if (detaching) detach(ul);
+			destroy_each(each_blocks, detaching);
+		}
+	};
+}
+
+// (6:8) {#if repo.name.includes("test")}
+function create_if_block_1(ctx) {
+	let li;
+	let a;
+	let t_value = /*repo*/ ctx[3].name + "";
+	let t;
+	let a_href_value;
+
+	return {
+		c() {
+			li = element("li");
+			a = element("a");
+			t = text(t_value);
+			attr(a, "href", a_href_value = /*repo*/ ctx[3].html_url);
+		},
+		m(target, anchor) {
+			insert(target, li, anchor);
+			append(li, a);
+			append(a, t);
+		},
+		p(ctx, dirty) {
+			if (dirty & /*repos*/ 1 && t_value !== (t_value = /*repo*/ ctx[3].name + "")) set_data(t, t_value);
+
+			if (dirty & /*repos*/ 1 && a_href_value !== (a_href_value = /*repo*/ ctx[3].html_url)) {
+				attr(a, "href", a_href_value);
+			}
+		},
+		d(detaching) {
+			if (detaching) detach(li);
+		}
+	};
+}
+
+// (5:6) {#each repos as repo}
+function create_each_block(ctx) {
+	let show_if = /*repo*/ ctx[3].name.includes("test");
+	let if_block_anchor;
+	let if_block = show_if && create_if_block_1(ctx);
+
+	return {
+		c() {
+			if (if_block) if_block.c();
+			if_block_anchor = empty();
+		},
+		m(target, anchor) {
+			if (if_block) if_block.m(target, anchor);
+			insert(target, if_block_anchor, anchor);
+		},
+		p(ctx, dirty) {
+			if (dirty & /*repos*/ 1) show_if = /*repo*/ ctx[3].name.includes("test");
+
+			if (show_if) {
+				if (if_block) {
+					if_block.p(ctx, dirty);
+				} else {
+					if_block = create_if_block_1(ctx);
+					if_block.c();
+					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+				}
+			} else if (if_block) {
+				if_block.d(1);
+				if_block = null;
+			}
+		},
+		d(detaching) {
+			if (if_block) if_block.d(detaching);
+			if (detaching) detach(if_block_anchor);
+		}
+	};
+}
+
 function create_fragment(ctx) {
 	let div;
-	let header;
-	let img;
-	let img_src_value;
-	let t0;
-	let p0;
-	let t4;
-	let p1;
-	let t5;
-	let code1;
-	let t6;
-	let t7;
-	let t8;
-	let p2;
+	let if_block = /*repos*/ ctx[0] && create_if_block(ctx);
 
 	return {
 		c() {
 			div = element("div");
-			header = element("header");
-			img = element("img");
-			t0 = space();
-			p0 = element("p");
-			p0.innerHTML = `Edit <code class="svelte-1wncah1">src/App.svelte</code> and save to reload.`;
-			t4 = space();
-			p1 = element("p");
-			t5 = text("Page has been open for ");
-			code1 = element("code");
-			t6 = text(/*count*/ ctx[0]);
-			t7 = text(" seconds.");
-			t8 = space();
-			p2 = element("p");
-			p2.innerHTML = `<a class="App-link svelte-1wncah1" href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Learn Svelte</a>`;
-			if (img.src !== (img_src_value = "logo.svg")) attr(img, "src", img_src_value);
-			attr(img, "class", "App-logo svelte-1wncah1");
-			attr(img, "alt", "logo");
-			attr(p0, "class", "svelte-1wncah1");
-			attr(code1, "class", "svelte-1wncah1");
-			attr(p1, "class", "svelte-1wncah1");
-			attr(p2, "class", "svelte-1wncah1");
-			attr(header, "class", "App-header svelte-1wncah1");
-			attr(div, "class", "App svelte-1wncah1");
+			if (if_block) if_block.c();
 		},
 		m(target, anchor) {
 			insert(target, div, anchor);
-			append(div, header);
-			append(header, img);
-			append(header, t0);
-			append(header, p0);
-			append(header, t4);
-			append(header, p1);
-			append(p1, t5);
-			append(p1, code1);
-			append(code1, t6);
-			append(p1, t7);
-			append(header, t8);
-			append(header, p2);
+			if (if_block) if_block.m(div, null);
 		},
 		p(ctx, [dirty]) {
-			if (dirty & /*count*/ 1) set_data(t6, /*count*/ ctx[0]);
+			if (/*repos*/ ctx[0]) {
+				if (if_block) {
+					if_block.p(ctx, dirty);
+				} else {
+					if_block = create_if_block(ctx);
+					if_block.c();
+					if_block.m(div, null);
+				}
+			} else if (if_block) {
+				if_block.d(1);
+				if_block = null;
+			}
 		},
 		i: noop,
 		o: noop,
 		d(detaching) {
 			if (detaching) detach(div);
+			if (if_block) if_block.d();
 		}
 	};
 }
 
 function instance($$self, $$props, $$invalidate) {
-	let count = 0;
+	let repos;
+	let repos_buffer = [];
+
+	let next = page_number => {
+		fetch("https://api.github.com/users/markfirmware/repos?page=" + page_number).then(r => r.json()).then(j => {
+			if (j.length == 0) {
+				$$invalidate(0, repos = repos_buffer);
+			} else {
+				repos_buffer = repos_buffer.concat(j);
+				next(page_number + 1);
+			}
+		});
+	};
+
+	next(1);
 
 	onMount(() => {
-		const interval = setInterval(() => $$invalidate(0, count++, count), 1000);
-
-		return () => {
-			clearInterval(interval);
-		};
+		
 	});
 
-	return [count];
+	return [repos];
 }
 
 class App extends SvelteComponent {
