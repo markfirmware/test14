@@ -13,6 +13,7 @@ import {
 	noop,
 	safe_not_equal,
 	set_data,
+	space,
 	text
 } from "../web_modules/svelte/internal.js";
 
@@ -24,8 +25,9 @@ function get_each_context(ctx, list, i) {
 	return child_ctx;
 }
 
-// (2:2) {#if repos}
+// (2:0) {#if repos}
 function create_if_block(ctx) {
+	let div;
 	let t;
 	let ul;
 	let each_value = /*repos*/ ctx[0];
@@ -37,6 +39,7 @@ function create_if_block(ctx) {
 
 	return {
 		c() {
+			div = element("div");
 			t = text("test repos\n    ");
 			ul = element("ul");
 
@@ -45,8 +48,9 @@ function create_if_block(ctx) {
 			}
 		},
 		m(target, anchor) {
-			insert(target, t, anchor);
-			insert(target, ul, anchor);
+			insert(target, div, anchor);
+			append(div, t);
+			append(div, ul);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].m(ul, null);
@@ -77,14 +81,13 @@ function create_if_block(ctx) {
 			}
 		},
 		d(detaching) {
-			if (detaching) detach(t);
-			if (detaching) detach(ul);
+			if (detaching) detach(div);
 			destroy_each(each_blocks, detaching);
 		}
 	};
 }
 
-// (6:8) {#if repo.name.includes("test")}
+// (7:8) {#if repo.name.includes("test")}
 function create_if_block_1(ctx) {
 	let li;
 	let a;
@@ -117,7 +120,7 @@ function create_if_block_1(ctx) {
 	};
 }
 
-// (5:6) {#each repos as repo}
+// (6:6) {#each repos as repo}
 function create_each_block(ctx) {
 	let show_if = /*repo*/ ctx[3].name.includes("test");
 	let if_block_anchor;
@@ -156,17 +159,25 @@ function create_each_block(ctx) {
 }
 
 function create_fragment(ctx) {
-	let div;
+	let a;
+	let t1;
+	let if_block_anchor;
 	let if_block = /*repos*/ ctx[0] && create_if_block(ctx);
 
 	return {
 		c() {
-			div = element("div");
+			a = element("a");
+			a.textContent = "gitpod";
+			t1 = space();
 			if (if_block) if_block.c();
+			if_block_anchor = empty();
+			attr(a, "href", "https://fd56ce1d-87d7-410a-9b44-9ef06b3b8703.ws-us02.gitpod.io/#/workspace/test14");
 		},
 		m(target, anchor) {
-			insert(target, div, anchor);
-			if (if_block) if_block.m(div, null);
+			insert(target, a, anchor);
+			insert(target, t1, anchor);
+			if (if_block) if_block.m(target, anchor);
+			insert(target, if_block_anchor, anchor);
 		},
 		p(ctx, [dirty]) {
 			if (/*repos*/ ctx[0]) {
@@ -175,7 +186,7 @@ function create_fragment(ctx) {
 				} else {
 					if_block = create_if_block(ctx);
 					if_block.c();
-					if_block.m(div, null);
+					if_block.m(if_block_anchor.parentNode, if_block_anchor);
 				}
 			} else if (if_block) {
 				if_block.d(1);
@@ -185,8 +196,10 @@ function create_fragment(ctx) {
 		i: noop,
 		o: noop,
 		d(detaching) {
-			if (detaching) detach(div);
-			if (if_block) if_block.d();
+			if (detaching) detach(a);
+			if (detaching) detach(t1);
+			if (if_block) if_block.d(detaching);
+			if (detaching) detach(if_block_anchor);
 		}
 	};
 }
