@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "label": "svelte github pages",
+            "type": "shell",
+            "init": "npm run build",
+            "command": "npm start",
+            "problemMatcher": []
+        }
+    ]
+}
